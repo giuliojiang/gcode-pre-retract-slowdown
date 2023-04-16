@@ -1,5 +1,3 @@
-import os
-from dataclasses import dataclass
 import math
 
 with open('print.gcode', 'r') as f:
@@ -186,48 +184,6 @@ def processBlock(block):
             slowdownExecuted = True
         newBlock.append(line)
     return newBlock
-    # position = blockFinalPosition(block)
-    # targetDistance = 10.0
-    # distanceFromRetraction = 0.0
-    # slowdownProcessed = False
-    # result = [] # lines
-    # for line in reversed(block):
-    #     if slowdownProcessed:
-    #         result.append(line)
-    #         continue
-    #     if isComment(line):
-    #         result.append(line)
-    #         continue
-    #     if isRetraction(line):
-    #         result.append(line)
-    #         continue
-    #     if not isXYMoveCommand(line):
-    #         result.append(line)
-    #         continue
-    #     prevPosition = parseXY(line)
-    #     dx = prevPosition[0] - position[0]
-    #     dy = prevPosition[1] - position[1]
-    #     deltaDistance = math.sqrt(dx*dx + dy*dy)
-    #     distanceFromRetraction += deltaDistance
-    #     if distanceFromRetraction >= targetDistance:
-    #         # Split current line and insert slowdown code
-    #         slowdownProcessed = True
-    #         splitPointFromLineEnd = distanceFromRetraction - targetDistance
-    #         splitPointFromLineBeginning = deltaDistance - splitPointFromLineEnd
-    #         splitPointRelative = splitPointFromLineBeginning / deltaDistance
-    #         # Segment 1
-    #         seg1X = prevPosition[0] + (splitPointRelative * dx)
-    #         seg1Y = prevPosition[1] + (splitPointRelative * dy)
-    #         # Reverse order append
-    #         result.append(line) # segment 2 is the same as original line!
-    #         result.append(SLOWDOWN_COMMAND + ' ; Pre retract slowdown') # slowdown
-    #         result.append('G1 X{} Y{}'.format(seg1X, seg1Y)) # segment 1
-    #     else:
-    #         result.append(line)
-    # if not slowdownProcessed:
-    #     result.append(SLOWDOWN_COMMAND + ' ; Slowdown entire block')
-    # return reversed(result)
-
 
 processedBlocks = []
 for block in blocks:
