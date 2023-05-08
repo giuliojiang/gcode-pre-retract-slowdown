@@ -1,35 +1,8 @@
 import math
-
-with open('print.gcode', 'r') as f:
-    gcodeStr = f.read()
-
-lines = gcodeStr.splitlines()
-
-def updateWithMove(x, y):
-    dx = x - state.x
-    dy = y - state.y
-    deltaDist = math.sqrt(dx*dx+dy*dy)
-    state.x = x
-    state.y = y
-    state.distance += deltaDist
-    return deltaDist
+import os
 
 def isRetraction(line):
     return ('G1' in line) and ('E-' in line)
-
-blocks = []
-block = []
-
-for line in lines:
-
-    if isRetraction(line):
-        block.append(line)
-        blocks.append(block)
-        block = []
-    else:
-        block.append(line)
-if len(block) > 0:
-    blocks.append(block)
 
 def isComment(line): 
     return line.startswith(';')   
@@ -138,20 +111,13 @@ def blockTotalDistance(block, startX, startY):
         'y': startY
     }
 
-state = {
-    'x': 0.0,
-    'y': 0.0
-}
-
-def processBlock(block):
+def processBlock(block, state):
     initialX = state['x']
     initialY = state['y']
     blockDistance = blockTotalDistance(block, state['x'], state['y'])
     travelled = blockDistance['distanceTravelled']
     state['x'] = blockDistance['x']
     state['y'] = blockDistance['y']
-    print('Block travelled {}'.format(travelled))
-
 
     if isInitBlock(block):
         print('Init block processed')
@@ -185,11 +151,40 @@ def processBlock(block):
         newBlock.append(line)
     return newBlock
 
-processedBlocks = []
-for block in blocks:
-    processedBlocks.append(processBlock(block))
+def transform(inputPath):
+    with open(inputPath, 'r') as f:
+        gcodeStr = f.read()
+    lines = gcodeStr.splitlines()
+    state = {
+        'x': 0.0,
+        'y': 0.0
+    }
+    blocks = []
+    block = []
+    for line in lines:
+        if isRetraction(line):
+            block.append(line)
+            blocks.append(block)
+            block = []
+        else:
+            block.append(line)
+    if len(block) > 0:
+        blocks.append(block)
+    processedBlocks = []
+    for block in blocks:
+        processedBlocks.append(processBlock(block, state))
+    inputName, inputExt = os.path.splitext(inputPath)
+    outputName = inputName + '_unstring'
+    with open(outputName + inputExt, 'w') as f:
+        for block in processedBlocks:
+            f.write('\n'.join(block))
+            f.write('\n')
 
-with open('processed.gcode', 'w') as f:
-    for block in processedBlocks:
-        f.write('\n'.join(block))
-        f.write('\n')
+def main():
+    filePaths = os.listdir('.')
+    for filePath in filePaths:
+        fileName, ext = os.path.splitext(filePath)
+        if (ext == '.gcode') and (not (fileName.endswith('_unstring'))):
+            transform(filePath)
+
+main()
